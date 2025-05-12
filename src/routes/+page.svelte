@@ -44,14 +44,27 @@
     </board>
 
     <hand>
-      <ul>
-        {#each currentGame.hand as card}
-          <li>
+      {#each currentGame.hand as card}
+        <button
+          class="card {selectedCard === card.id ? 'selected' : ''}"
+          on:click={() =>
+            selectedCard === card.id
+              ? (selectedCard = null)
+              : (selectedCard = card.id)}
+        >
+          <div class="card-content">
+            <cost>
+              {"*".repeat(card.cost)}
+            </cost>
+            <value>
+              {card.value}
+            </value>
+          </div>
+          <name>
             {card.name}
-            <button on:click={() => (selectedCard = card.id)}>Select</button>
-          </li>
-        {/each}
-      </ul>
+          </name>
+        </button>
+      {/each}
     </hand>
   {:else}
     <p>Loading game...</p>
@@ -76,8 +89,8 @@
   }
 
   .cell {
-    width: 50px;
-    height: 50px;
+    width: 100px;
+    height: 100px;
     border: 1px solid #ccc;
     display: flex;
     justify-content: center;
@@ -94,42 +107,37 @@
   }
 
   hand {
-    margin-top: 20px;
-    width: 100%;
-    max-width: 400px;
-  }
-
-  hand ul {
-    list-style: none;
-    padding: 0;
     display: flex;
     gap: 10px;
-    justify-content: center;
+    padding-top: 20px;
   }
 
-  hand li {
+  .card {
+    width: 100px;
+    height: 150px;
+    padding: 5px;
+    border: 1px solid #ccc;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    justify-content: space-between;
+    background-color: #f9f9f9;
+    font-weight: bold;
+    text-align: center;
   }
 
-  hand button {
-    margin-top: 5px;
-    padding: 5px 10px;
-    border: none;
-    border-radius: 3px;
-    background-color: #007bff;
-    color: white;
+  .card:hover {
+    transform: translateY(-10px);
     cursor: pointer;
-    font-size: 14px;
   }
 
-  hand button:hover {
-    background-color: #0056b3;
+  .card.selected {
+    transform: translateY(-10px);
+    border-color: #007bff;
+  }
+
+  .card-content {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
   }
 </style>

@@ -5,12 +5,15 @@ export type Cell = {
 
 export type Board = Cell[][];
 
+export type Direction = [number, number];
+
 export type Card = {
   id: number;
   name: string;
   cost: number;
   value: number;
   description: string;
+  attacks: [Direction, number][];
   play: (game: Game, row: number, col: number) => void;
 };
 

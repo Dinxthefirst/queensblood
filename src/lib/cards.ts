@@ -1,39 +1,112 @@
-import type { Card } from "./types";
+import type { Card, Direction, Game } from "./types";
 
-const directions = {
-  left: { rowOffset: 0, colOffset: -1 }, // Left
-  right: { rowOffset: 0, colOffset: 1 }, // Right
-  up: { rowOffset: -1, colOffset: 0 }, // Up
-  down: { rowOffset: 1, colOffset: 0 }, // Down
-  upLeft: { rowOffset: -1, colOffset: -1 }, // Up-Left
-  upRight: { rowOffset: -1, colOffset: 1 }, // Up-Right
-  downLeft: { rowOffset: 1, colOffset: -1 }, // Down-Left
-  downRight: { rowOffset: 1, colOffset: 1 }, // Down-Right
-};
+const up: Direction = [-1, 0];
+const down: Direction = [1, 0];
+const left: Direction = [0, -1];
+const right: Direction = [0, 1];
+const upLeft: Direction = [-1, -1];
+const upRight: Direction = [-1, 1];
+const downLeft: Direction = [1, -1];
+const downRight: Direction = [1, 1];
+const topleft: Direction = [-2, -2];
+const topright: Direction = [-2, 2];
+const bottomleft: Direction = [2, -2];
+const bottomright: Direction = [2, 2];
+const upup: Direction = [-2, 0];
+const downDown: Direction = [2, 0];
+const leftLeft: Direction = [0, -2];
+const rightRight: Direction = [0, 2];
+
+const uniqueId = (() => {
+  let id = 0;
+  return () => id++;
+})();
 
 const isWithinBounds = (row: number, col: number) => {
   return row >= 0 && row < 3 && col >= 0 && col < 5;
 };
 
-export const soldierCard: Card = {
-  id: 1,
-  name: "Soldier",
-  cost: 1,
-  value: 1,
-  description: "A basic soldier card.",
-  play: (game, row, col) => {
-    [directions.up, directions.right, directions.down].forEach(
-      ({ rowOffset, colOffset }) => {
-        const newRow = row + rowOffset;
-        const newCol = col + colOffset;
+function attack(
+  game: Game,
+  row: number,
+  col: number,
+  rowOffset: number,
+  colOffset: number,
+  attackPower: number
+) {
+  const newRow = row + rowOffset;
+  const newCol = col + colOffset;
 
-        if (
-          isWithinBounds(newRow, newCol) &&
-          !game.board[newRow][newCol].card
-        ) {
-          game.board[newRow][newCol].value += 1;
-        }
-      }
-    );
-  },
+  if (!isWithinBounds(newRow, newCol)) return;
+
+  const cell = game.board[newRow][newCol];
+  if (cell.card) return;
+
+  if (cell.value < 0) {
+    cell.value *= -1;
+  } else {
+    cell.value += attackPower;
+  }
+}
+
+function createCard({
+  name,
+  cost,
+  value,
+  description,
+  attacks,
+  play,
+}: {
+  name: string;
+  cost: number;
+  value: number;
+  description: string;
+  attacks: [Direction, number][];
+  play: (game: Game, row: number, col: number) => void;
+}): Card {
+  return {
+    id: uniqueId(),
+    name,
+    cost,
+    value,
+    description,
+    attacks,
+    play,
+  };
+}
+
+export const soldierCard = () => {
+  let attacks: [Direction, number][] = [
+    [up, 1],
+    [down, 1],
+    [right, 1],
+  ];
+  return createCard({
+    name: "Soldier",
+    cost: 1,
+    value: 1,
+    description: "A basic soldier card.",
+    attacks: attacks,
+    play: (game, row, col) => {
+      attacks.forEach(([[rowOffset, colOffset], attackPower]) => {
+        attack(game, row, col, rowOffset, colOffset, attackPower);
+      });
+    },
+  });
+};
+
+export const archerCard = () => {
+  let attacks: [Direction, number][] = [[rightRight, 2]];
+  return createCard({
+    name: "Archer",
+    cost: 2,
+    value: 2,
+    description: "A ranged unit that can attack from a distance.",
+    attacks: attacks,
+    play: (game, row, col) => {
+      attacks.forEach(([[rowOffset, colOffset], attackPower]) => {
+        attack(game, row, col, rowOffset, colOffset, attackPower);
+      });
+    },
+  });
 };
