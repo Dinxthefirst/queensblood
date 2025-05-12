@@ -34,9 +34,24 @@
     <board>
       {#each currentGame.board as row, rowIndex}
         <div class="row">
+          <div class="row-total">
+            {row.reduce(
+              (acc, cell) => acc + (cell.card ? cell.card.value : 0),
+              0
+            )}
+          </div>
           {#each row as cell, colIndex}
             <button class="cell" on:click={() => playCard(rowIndex, colIndex)}>
-              {cell.card ? cell.card.name : cell.value}
+              {#if cell.card}
+                <div class="card-value">
+                  {cell.card.value}
+                </div>
+                {cell.card.name}
+              {:else}
+                <div class="cell-value">
+                  {cell.value}
+                </div>
+              {/if}
             </button>
           {/each}
         </div>
@@ -60,6 +75,28 @@
               {card.value}
             </value>
           </div>
+          <div class="attack-grid">
+            {#each Array(5) as _, rowIndex}
+              {#each Array(5) as _, colIndex}
+                <div
+                  class="attack-cell
+                    {rowIndex === 2 && colIndex === 2 ? 'center' : ''}
+                    {card.attacks.some(
+                    ([[rowOffset, colOffset], _]) =>
+                      rowOffset + 2 === rowIndex && colOffset + 2 === colIndex
+                  )
+                    ? 'attacked'
+                    : ''}"
+                >
+                  {#each card.attacks as [[rowOffset, colOffset], attackPower]}
+                    {#if rowOffset + 2 === rowIndex && colOffset + 2 === colIndex}
+                      {attackPower}
+                    {/if}
+                  {/each}
+                </div>
+              {/each}
+            {/each}
+          </div>
           <name>
             {card.name}
           </name>
@@ -72,6 +109,10 @@
 </main>
 
 <style>
+  * {
+    margin: 0;
+    box-sizing: border-box;
+  }
   main {
     font-family: Arial, sans-serif;
     padding: 20px;
@@ -93,17 +134,43 @@
     height: 100px;
     border: 1px solid #ccc;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
     background-color: #f9f9f9;
     font-size: 14px;
     font-weight: bold;
     text-align: center;
+    padding: 0 5px 5px 5px;
+  }
+
+  .row-total {
+    width: 100px;
+    height: 100px;
+    border: 1px solid #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0f0f0;
+    font-size: 16px;
+    font-weight: bold;
   }
 
   .cell:hover {
     background-color: #e0e0e0;
     cursor: pointer;
+  }
+
+  .card-value {
+    align-self: flex-end;
+    font-size: 16px;
+    font-weight: bold;
+    padding-right: 10px;
+  }
+
+  .cell-value {
+    font-size: 16px;
+    font-weight: bold;
   }
 
   hand {
@@ -139,5 +206,30 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+  }
+
+  .attack-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 15px);
+    grid-template-rows: repeat(5, 15px);
+    gap: 3px;
+  }
+
+  .attack-cell {
+    width: 15px;
+    height: 15px;
+    border: 1px solid #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+  }
+
+  .attack-cell.attacked {
+    background-color: #ffcccc;
+  }
+
+  .attack-cell.center {
+    background-color: #ffffcc;
   }
 </style>

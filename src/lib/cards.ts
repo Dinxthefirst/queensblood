@@ -46,6 +46,7 @@ function attack(
     cell.value *= -1;
   } else {
     cell.value += attackPower;
+    cell.value = Math.min(cell.value, 3);
   }
 }
 
@@ -95,10 +96,13 @@ export const soldierCard = () => {
   });
 };
 
-export const archerCard = () => {
-  let attacks: [Direction, number][] = [[rightRight, 2]];
+export const rangerCard = () => {
+  let attacks: [Direction, number][] = [
+    [right, 1],
+    [rightRight, 2],
+  ];
   return createCard({
-    name: "Archer",
+    name: "Ranger",
     cost: 2,
     value: 2,
     description: "A ranged unit that can attack from a distance.",

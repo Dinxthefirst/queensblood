@@ -1,21 +1,21 @@
 import type { Game } from "./types";
 import { createBoard } from "./types";
-import { archerCard, soldierCard } from "./cards";
+import { rangerCard, soldierCard } from "./cards";
 
 export function newGame(): Game {
   return {
     board: createBoard(),
     deck: [
       soldierCard(),
-      archerCard(),
+      rangerCard(),
       soldierCard(),
-      archerCard(),
+      rangerCard(),
       soldierCard(),
-      archerCard(),
+      rangerCard(),
       soldierCard(),
-      archerCard(),
+      rangerCard(),
     ],
-    hand: [soldierCard(), archerCard()],
+    hand: [soldierCard(), rangerCard()],
     playCard(cardId: number, row: number, col: number) {
       const card = this.hand.find((c) => c.id === cardId);
 
