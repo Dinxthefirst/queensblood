@@ -16,6 +16,8 @@ const upup: Direction = [-2, 0];
 const downDown: Direction = [2, 0];
 const leftLeft: Direction = [0, -2];
 const rightRight: Direction = [0, 2];
+const upRightRight: Direction = [-1, 2];
+const downRightRight: Direction = [1, 2];
 
 const uniqueId = (() => {
   let id = 0;
@@ -115,7 +117,51 @@ const rangerCard = () => {
   });
 };
 
+const flankerCard = () => {
+  let attacks: [Direction, number][] = [
+    [topright, 1],
+    [bottomright, 1],
+  ];
+  return createCard({
+    name: "Flanker",
+    cost: 1,
+    value: 2,
+    description: "A unit that can attack from the the other side of the board.",
+    attacks: attacks,
+    play: (game, row, col) => {
+      attacks.forEach(([[rowOffset, colOffset], attackPower]) => {
+        attack(game, row, col, rowOffset, colOffset, attackPower);
+      });
+    },
+  });
+};
+
+const cannonCard = () => {
+  let attacks: [Direction, number][] = [
+    [right, 1],
+    [upRight, 1],
+    [downRight, 1],
+    [rightRight, 1],
+    [upRightRight, 1],
+    [downRightRight, 1],
+  ];
+  return createCard({
+    name: "Cannon",
+    cost: 3,
+    value: 3,
+    description: "A unit that can hits everything in its path.",
+    attacks: attacks,
+    play: (game, row, col) => {
+      attacks.forEach(([[rowOffset, colOffset], attackPower]) => {
+        attack(game, row, col, rowOffset, colOffset, attackPower);
+      });
+    },
+  });
+};
+
 export const cards = [
   { name: "Soldier", createCard: soldierCard },
   { name: "Ranger", createCard: rangerCard },
+  { name: "Flanker", createCard: flankerCard },
+  { name: "Cannon", createCard: cannonCard },
 ];

@@ -16,13 +16,9 @@
   }));
 
   function startNewGame() {
-    const deck: Card[] = [];
-
-    cards.forEach(({ name, createCard }) => {
-      for (let i = 0; i < cardAmounts[name]; i++) {
-        deck.push(createCard());
-      }
-    });
+    const deck: Card[] = cards.reduce((acc, { name, createCard }) => {
+      return acc.concat(Array.from({ length: cardAmounts[name] }, createCard));
+    }, [] as Card[]);
 
     if (deck.length != 10) {
       alert("Please select exactly 10 cards to start a new game.");
