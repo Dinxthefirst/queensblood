@@ -76,7 +76,7 @@ function createCard({
   };
 }
 
-export const soldierCard = () => {
+const soldierCard = () => {
   let attacks: [Direction, number][] = [
     [up, 1],
     [down, 1],
@@ -96,7 +96,7 @@ export const soldierCard = () => {
   });
 };
 
-export const rangerCard = () => {
+const rangerCard = () => {
   let attacks: [Direction, number][] = [
     [right, 1],
     [rightRight, 2],
@@ -114,3 +114,8 @@ export const rangerCard = () => {
     },
   });
 };
+
+export const cards = [
+  { name: "Soldier", createCard: soldierCard },
+  { name: "Ranger", createCard: rangerCard },
+];

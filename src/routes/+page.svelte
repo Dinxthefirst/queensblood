@@ -1,78 +1,53 @@
 <script lang="ts">
+  import type { Card } from "$lib/types";
+  import { cards } from "$lib/cards";
+  import { newGame } from "$lib/game";
   import game from "$lib/gameStore";
-  import type { Game } from "$lib/types";
-  import { onMount } from "svelte";
+  import { goto } from "$app/navigation";
 
-  let currentGame: Game;
-  let selectedCard: number | null = null;
+  let cardAmounts = cards.reduce(
+    (acc, { name }) => ({ ...acc, [name]: 0 }),
+    {} as Record<string, number>
+  );
 
-  onMount(() => {
-    const unsubscribe = game.subscribe((value) => {
-      currentGame = value;
+  let cardInstances = cards.map(({ name, createCard }) => ({
+    name,
+    card: createCard(),
+  }));
+
+  function startNewGame() {
+    const deck: Card[] = [];
+
+    cards.forEach(({ name, createCard }) => {
+      for (let i = 0; i < cardAmounts[name]; i++) {
+        deck.push(createCard());
+      }
     });
-    return unsubscribe;
-  });
 
-  function playCard(row: number, col: number) {
-    if (!currentGame) return;
-    if (selectedCard === null) {
-      alert("Please select a card to play.");
+    if (deck.length != 10) {
+      alert("Please select exactly 10 cards to start a new game.");
       return;
     }
-    const card = currentGame.hand.find((c) => c.id === selectedCard);
-    if (!card) {
-      alert("Selected card not found in hand.");
-      return;
-    }
-    currentGame.playCard(selectedCard, row, col);
-    game.set(currentGame);
+
+    const shuffledDeck = deck.sort(() => Math.random() - 0.5);
+
+    game.set(newGame(shuffledDeck));
+
+    goto("/game");
   }
 </script>
 
-<main>
-  {#if currentGame}
-    <board>
-      {#each currentGame.board as row, rowIndex}
-        <div class="row">
-          <div class="row-total">
-            {row.reduce(
-              (acc, cell) => acc + (cell.card ? cell.card.value : 0),
-              0
-            )}
-          </div>
-          {#each row as cell, colIndex}
-            <button class="cell" on:click={() => playCard(rowIndex, colIndex)}>
-              {#if cell.card}
-                <div class="card-value">
-                  {cell.card.value}
-                </div>
-                {cell.card.name}
-              {:else}
-                <div class="cell-value">
-                  {cell.value}
-                </div>
-              {/if}
-            </button>
-          {/each}
-        </div>
-      {/each}
-    </board>
-
-    <hand>
-      {#each currentGame.hand as card}
-        <button
-          class="card {selectedCard === card.id ? 'selected' : ''}"
-          on:click={() =>
-            selectedCard === card.id
-              ? (selectedCard = null)
-              : (selectedCard = card.id)}
-        >
+<menu>
+  <div class="cards">
+    {#each cardInstances as cardInstance}
+      <div class="card-container">
+        <div class="card">
           <div class="card-content">
             <cost>
-              {"*".repeat(card.cost)}
+              {"*".repeat(cardInstance.card.cost)}
             </cost>
             <value>
-              {card.value}
+              {cardInstance.card.value}
             </value>
           </div>
           <div class="attack-grid">
@@ -80,15 +55,15 @@
               {#each Array(5) as _, colIndex}
                 <div
                   class="attack-cell
-                    {rowIndex === 2 && colIndex === 2 ? 'center' : ''}
-                    {card.attacks.some(
+                  {rowIndex === 2 && colIndex === 2 ? 'center' : ''}
+                  {cardInstance.card.attacks.some(
                     ([[rowOffset, colOffset], _]) =>
                       rowOffset + 2 === rowIndex && colOffset + 2 === colIndex
                   )
                     ? 'attacked'
                     : ''}"
                 >
-                  {#each card.attacks as [[rowOffset, colOffset], attackPower]}
+                  {#each cardInstance.card.attacks as [[rowOffset, colOffset], attackPower]}
                     {#if rowOffset + 2 === rowIndex && colOffset + 2 === colIndex}
                       {attackPower}
                     {/if}
@@ -98,85 +73,52 @@
             {/each}
           </div>
           <name>
-            {card.name}
+            {cardInstance.name}
           </name>
-        </button>
-      {/each}
-    </hand>
-  {:else}
-    <p>Loading game...</p>
-  {/if}
-</main>
+        </div>
+        <div class="amount">
+          <input
+            type="number"
+            min="0"
+            max="5"
+            bind:value={cardAmounts[cardInstance.name]}
+          />
+        </div>
+      </div>
+    {/each}
+  </div>
+  <div class="buttons">
+    <button class="new-game" onclick={startNewGame}>Start New Game</button>
+  </div>
+</menu>
 
 <style>
   * {
     margin: 0;
+    padding: 0;
     box-sizing: border-box;
   }
-  main {
+
+  menu {
     font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
     padding: 20px;
+  }
+
+  .cards {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+  }
+
+  .card-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-  }
-
-  board {
-    display: grid;
-  }
-
-  .row {
-    display: flex;
-  }
-
-  .cell {
-    width: 100px;
-    height: 100px;
-    border: 1px solid #ccc;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #f9f9f9;
-    font-size: 14px;
-    font-weight: bold;
-    text-align: center;
-    padding: 0 5px 5px 5px;
-  }
-
-  .row-total {
-    width: 100px;
-    height: 100px;
-    border: 1px solid #ccc;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #f0f0f0;
-    font-size: 16px;
-    font-weight: bold;
-  }
-
-  .cell:hover {
-    background-color: #e0e0e0;
-    cursor: pointer;
-  }
-
-  .card-value {
-    align-self: flex-end;
-    font-size: 16px;
-    font-weight: bold;
-    padding-right: 10px;
-  }
-
-  .cell-value {
-    font-size: 16px;
-    font-weight: bold;
-  }
-
-  hand {
-    display: flex;
-    gap: 10px;
-    padding-top: 20px;
+    gap: 5px;
   }
 
   .card {
@@ -190,16 +132,6 @@
     background-color: #f9f9f9;
     font-weight: bold;
     text-align: center;
-  }
-
-  .card:hover {
-    transform: translateY(-10px);
-    cursor: pointer;
-  }
-
-  .card.selected {
-    transform: translateY(-10px);
-    border-color: #007bff;
   }
 
   .card-content {
@@ -231,5 +163,11 @@
 
   .attack-cell.center {
     background-color: #ffffcc;
+  }
+
+  .buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 </style>

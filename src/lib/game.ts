@@ -1,21 +1,17 @@
-import type { Game } from "./types";
+import type { Game, Card } from "./types";
 import { createBoard } from "./types";
-import { rangerCard, soldierCard } from "./cards";
 
-export function newGame(): Game {
+export function newGame(deck: Card[]): Game {
+  const hand: Card[] = [];
+  for (let i = 0; i < 3; i++) {
+    hand.push(deck.pop()!);
+  }
+
   return {
     board: createBoard(),
-    deck: [
-      soldierCard(),
-      rangerCard(),
-      soldierCard(),
-      rangerCard(),
-      soldierCard(),
-      rangerCard(),
-      soldierCard(),
-      rangerCard(),
-    ],
-    hand: [soldierCard(), rangerCard()],
+    deck: deck,
+    hand: hand,
+    currentTurn: 0,
     playCard(cardId: number, row: number, col: number) {
       const card = this.hand.find((c) => c.id === cardId);
 
@@ -39,6 +35,20 @@ export function newGame(): Game {
         };
         drawCard();
       }
+    },
+    drawCard() {
+      if (this.deck.length > 0) {
+        const drawnCard = this.deck.pop();
+        if (drawnCard) {
+          this.hand.push(drawnCard);
+        }
+      } else {
+        console.log("No more cards in the deck.");
+      }
+    },
+    endTurn() {
+      this.currentTurn = (this.currentTurn + 1) % 2;
+      this.drawCard();
     },
   };
 }

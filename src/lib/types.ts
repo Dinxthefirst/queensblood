@@ -39,5 +39,8 @@ export type Game = {
   board: Board;
   deck: Card[];
   hand: Card[];
+  currentTurn: number;
   playCard: (cardId: number, row: number, col: number) => void;
+  drawCard: () => void;
+  endTurn: () => void;
 };
